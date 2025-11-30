@@ -1,0 +1,361 @@
+{
+  "name": "integration",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -80
+      ],
+      "id": "af3251c4-c847-4ebf-a686-02babea13d6d",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4f20d264-e842-4adc-a9c8-30730340956a",
+              "name": "page",
+              "value": 0,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -48,
+        192
+      ],
+      "id": "6d5c91c5-7e72-42d7-b150-b1c065173c9f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "url": "=http://212.237.219.35:8080/students/13/cms/spares?page={{$json.page}}&size=10\n",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -48,
+        -112
+      ],
+      "id": "a9303626-5532-4f84-bd5e-f25f73a2c4f7",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// count = сколько получено элементов из HTTP\nconst count = items.length - 1;\n\n// page = последний элемент (из Edit Fields)\nconst page = items[items.length - 1].json.page;\n\nreturn [\n  {\n    json: { count, page },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        -64
+      ],
+      "id": "f52e1553-d0ba-453e-8cc2-11cb74a6ac14",
+      "name": "Code in JavaScript",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        464,
+        0
+      ],
+      "id": "72f84804-8687-41f4-bbb5-a816f11e3425",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "432d0f8c-f747-47fe-a0b7-26c7883c1861",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        -64
+      ],
+      "id": "ae0fc90c-ddf6-4fb0-9676-881f4c9bf394",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "94311dfd-1efa-40a3-b4a5-6dada7711126",
+              "name": "page",
+              "value": "={{ $json.page + 1 }}\n",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        -352
+      ],
+      "id": "ea5ff884-f2b9-4074-b0c8-04348a9fadcb",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst rows = items.map(i => {\n  const code = i.json.spare_code;\n  const name = i.json.spare_name;\n  const desc = i.json.spare_description;\n  const type = i.json.spare_type;\n  const status = i.json.spare_status;\n\n  // НОРМАЛИЗАЦИЯ price: 42.00 → 42, 42.50 → 42.5\n  const price = Number(i.json.price).toString();\n\n  // quantity тоже нормализуем на всякий случай\n  const quantity = Number(i.json.quantity).toString();\n\n  const updatedAt = i.json.updated_at;\n\n  return [\n    code,\n    name,\n    desc,\n    type,\n    status,\n    price,\n    quantity,\n    updatedAt\n  ].join(\";\")\n});\n\nconst csv = rows.join(\"\\n\") + \"\\n\";\n\nreturn [{ json: { csv } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        512
+      ],
+      "id": "268b6ece-6ad3-4541-b502-2cf3d0dd1573",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://212.237.219.35:8080/students/13/report/csv",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "text/csv; charset=utf-8",
+        "body": "={{ $json.csv }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        224,
+        512
+      ],
+      "id": "b0f2e737-34c4-4e33-9598-1df4ba1b8db6",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO historical_spares (\n    student_id,\n    spare_code,\n    spare_name,\n    spare_description,\n    spare_type,\n    spare_status,\n    price,\n    quantity,\n    updated_at\n)\nVALUES (\n    13,\n    $1,\n    $2,\n    $3,\n    $4,\n    $5,\n    $6,\n    $7,\n    $8\n)\nON CONFLICT (student_id, spare_code)\nDO UPDATE SET\n    spare_name       = EXCLUDED.spare_name,\n    spare_description = EXCLUDED.spare_description,\n    spare_type       = EXCLUDED.spare_type,\n    spare_status     = EXCLUDED.spare_status,\n    price            = EXCLUDED.price,\n    quantity         = EXCLUDED.quantity,\n    updated_at       = EXCLUDED.updated_at,\n    last_seen_at     = NOW();\n",
+        "options": {
+          "queryReplacement": "=={{$json.spareCode}},{{$json.spareName}},{{$json.spareDescription}},{{$json.spareType}},{{$json.spareStatus}},{{$json.price}},{{$json.quantity}},{{$json.updatedAt}}\n"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        112,
+        16
+      ],
+      "id": "20836363-363c-495b-8333-53f132ddafdc",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "maKB1aah9NmSIhHh",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  spare_code,\n  spare_name,\n  spare_description,\n  spare_type,\n  spare_status,\n  price,\n  quantity,\n  updated_at\nFROM historical_spares\nWHERE student_id = 13\nORDER BY\n  CAST(SUBSTRING(spare_code FROM '[0-9]+') AS INTEGER);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -272,
+        512
+      ],
+      "id": "6ac42ee4-2af6-4616-b40e-f991e67386c7",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "maKB1aah9NmSIhHh",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "CREATE TABLE IF NOT EXISTS historical_spares (\n  id SERIAL PRIMARY KEY,\n  student_id INTEGER NOT NULL,\n  spare_code TEXT NOT NULL,\n  spare_name TEXT,\n  spare_description TEXT,\n  spare_type TEXT,\n  spare_status TEXT,\n  price NUMERIC(12,2),\n  quantity INTEGER,\n  updated_at TIMESTAMP WITH TIME ZONE,\n  inserted_at TIMESTAMP WITH TIME ZONE DEFAULT now(),\n  last_seen_at TIMESTAMP WITH TIME ZONE DEFAULT now(),\n  CONSTRAINT uq_student_spare UNIQUE (student_id, spare_code)\n);",
+        "height": 368,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -592,
+        96
+      ],
+      "typeVersion": 1,
+      "id": "f930082e-99c8-4d8b-8d65-3f9792dd6f65",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8f4cc0a0-0268-4788-b602-1b3c92be0a07",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2476a061ad75c366a8210d7a22d46961583fa3705ff1c8df4e6a45e29055a0dd"
+  },
+  "id": "gSn436DI6JEUqtxs",
+  "tags": []
+}
