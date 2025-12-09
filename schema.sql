@@ -11,5 +11,6 @@ CREATE TABLE IF NOT EXISTS historical_spares (
   updated_at TIMESTAMP WITH TIME ZONE,
   inserted_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   last_seen_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  active BOOLEAN,
   CONSTRAINT uq_student_spare UNIQUE (student_id, spare_code)
 );
