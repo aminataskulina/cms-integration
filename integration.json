@@ -6,10 +6,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -864,
-        112
+        -1312,
+        272
       ],
-      "id": "af3251c4-c847-4ebf-a686-02babea13d6d",
+      "id": "43acb31b-a44d-4339-b8a6-e39762364d3f",
       "name": "When clicking ‘Execute workflow’"
     },
     {
@@ -29,10 +29,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -48,
-        192
+        -1072,
+        544
       ],
-      "id": "6d5c91c5-7e72-42d7-b150-b1c065173c9f",
+      "id": "2b0fd6bd-5ddc-4225-92fd-56843bbe708e",
       "name": "Edit Fields"
     },
     {
@@ -49,10 +49,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -96,
-        -96
+        -1072,
+        240
       ],
-      "id": "a9303626-5532-4f84-bd5e-f25f73a2c4f7",
+      "id": "5a916344-aad7-4822-9a56-248be65bc748",
       "name": "HTTP Request"
     },
     {
@@ -62,10 +62,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        704,
-        -64
+        -320,
+        288
       ],
-      "id": "f52e1553-d0ba-453e-8cc2-11cb74a6ac14",
+      "id": "5d1c2536-b46a-4c0a-aef9-014a91f9e94a",
       "name": "Code in JavaScript",
       "alwaysOutputData": true
     },
@@ -74,10 +74,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        464,
-        0
+        -560,
+        352
       ],
-      "id": "72f84804-8687-41f4-bbb5-a816f11e3425",
+      "id": "d69914a4-f011-4567-b136-38263c526a97",
       "name": "Merge"
     },
     {
@@ -107,10 +107,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        896,
-        -64
+        -128,
+        288
       ],
-      "id": "ae0fc90c-ddf6-4fb0-9676-881f4c9bf394",
+      "id": "416f150f-b105-4a1a-9748-0f1a03ae5bdf",
       "name": "If"
     },
     {
@@ -131,10 +131,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1024,
-        -352
+        0,
+        0
       ],
-      "id": "ea5ff884-f2b9-4074-b0c8-04348a9fadcb",
+      "id": "6fe59bed-7c65-40d2-9457-e08009c87f09",
       "name": "Edit Fields1"
     },
     {
@@ -144,10 +144,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -32,
-        512
+        -1056,
+        864
       ],
-      "id": "268b6ece-6ad3-4541-b502-2cf3d0dd1573",
+      "id": "0b331fa2-8362-44ed-b1dd-b1d849e5976b",
       "name": "Code in JavaScript1"
     },
     {
@@ -163,25 +163,48 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        224,
-        512
+        -800,
+        864
       ],
-      "id": "b0f2e737-34c4-4e33-9598-1df4ba1b8db6",
+      "id": "9158cbac-211c-4a8c-bd0f-391e8e7d2f5c",
       "name": "HTTP Request2"
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT\n  spare_code,\n  spare_name,\n  spare_description,\n  spare_type,\n  spare_status,\n  price,\n  quantity,\n  updated_at\nFROM historical_spares\nWHERE active = true\nORDER BY\n  CAST(SUBSTRING(spare_code FROM '([0-9]+)') AS INTEGER);",
+        "query": "INSERT INTO historical_spares (\n    student_id,\n    spare_code,\n    spare_name,\n    spare_description,\n    spare_type,\n    spare_status,\n    price,\n    quantity,\n    updated_at\n)\nVALUES (\n    13,\n    $1,\n    $2,\n    $3,\n    $4,\n    $5,\n    $6,\n    $7,\n    $8\n)\nON CONFLICT (student_id, spare_code)\nDO UPDATE SET\n    spare_name       = EXCLUDED.spare_name,\n    spare_description = EXCLUDED.spare_description,\n    spare_type       = EXCLUDED.spare_type,\n    spare_status     = EXCLUDED.spare_status,\n    price            = EXCLUDED.price,\n    quantity         = EXCLUDED.quantity,\n    updated_at       = EXCLUDED.updated_at,\n    last_seen_at     = NOW();\n",
+        "options": {
+          "queryReplacement": "=={{$json.spareCode}},{{$json.spareName}},{{$json.spareDescription}},{{$json.spareType}},{{$json.spareStatus}},{{$json.price}},{{$json.quantity}},{{$json.updatedAt}}\n"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -912,
+        368
+      ],
+      "id": "b0acc3a3-5061-4f0b-b819-dafcd2ad199b",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "maKB1aah9NmSIhHh",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  spare_code,\n  spare_name,\n  spare_description,\n  spare_type,\n  spare_status,\n  price,\n  quantity,\n  updated_at\nFROM historical_spares\nWHERE student_id = 13\nORDER BY\n  CAST(SUBSTRING(spare_code FROM '[0-9]+') AS INTEGER);\n",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -272,
-        512
+        -1296,
+        864
       ],
-      "id": "6ac42ee4-2af6-4616-b40e-f991e67386c7",
+      "id": "fd2574f2-0ab2-4c52-939e-4954d48b017c",
       "name": "Execute a SQL query1",
       "credentials": {
         "postgres": {
@@ -192,198 +215,18 @@
     },
     {
       "parameters": {
-        "operation": "upsert",
-        "schema": {
-          "__rl": true,
-          "mode": "list",
-          "value": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "historical_spares",
-          "mode": "list",
-          "cachedResultName": "historical_spares"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "active": true,
-            "spare_code": "={{ $json.spareCode }}",
-            "spare_name": "={{ $json.spareName }}",
-            "spare_description": "={{ $json.spareDescription }}",
-            "spare_type": "={{ $json.spareType }}",
-            "spare_status": "={{ $json.spareStatus }}",
-            "price": "={{ $json.price }}",
-            "quantity": "={{ $json.quantity }}",
-            "updated_at": "={{ $json.updatedAt }}",
-            "last_seen_at": "={{ $now }}"
-          },
-          "matchingColumns": [
-            "spare_code"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "student_id",
-              "displayName": "student_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "spare_code",
-              "displayName": "spare_code",
-              "required": true,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "spare_name",
-              "displayName": "spare_name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "spare_description",
-              "displayName": "spare_description",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "spare_type",
-              "displayName": "spare_type",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "spare_status",
-              "displayName": "spare_status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "price",
-              "displayName": "price",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "quantity",
-              "displayName": "quantity",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "updated_at",
-              "displayName": "updated_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "inserted_at",
-              "displayName": "inserted_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": false,
-              "removed": true
-            },
-            {
-              "id": "last_seen_at",
-              "displayName": "last_seen_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "active",
-              "displayName": "active",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "boolean",
-              "canBeUsedToMatch": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
+        "content": "CREATE TABLE IF NOT EXISTS historical_spares (\n  id SERIAL PRIMARY KEY,\n  student_id INTEGER NOT NULL,\n  spare_code TEXT NOT NULL,\n  spare_name TEXT,\n  spare_description TEXT,\n  spare_type TEXT,\n  spare_status TEXT,\n  price NUMERIC(12,2),\n  quantity INTEGER,\n  updated_at TIMESTAMP WITH TIME ZONE,\n  inserted_at TIMESTAMP WITH TIME ZONE DEFAULT now(),\n  last_seen_at TIMESTAMP WITH TIME ZONE DEFAULT now(),\n  CONSTRAINT uq_student_spare UNIQUE (student_id, spare_code)\n);",
+        "height": 368,
+        "width": 400
       },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
+      "type": "n8n-nodes-base.stickyNote",
       "position": [
-        112,
-        16
+        -1616,
+        448
       ],
-      "id": "20836363-363c-495b-8333-53f132ddafdc",
-      "name": "Insert or update rows in a table",
-      "credentials": {
-        "postgres": {
-          "id": "maKB1aah9NmSIhHh",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE historical_spares\nSET active = false",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -384,
-        -48
-      ],
-      "id": "131ce33d-f77e-4835-91f8-effa1f17a6bc",
-      "name": "Make inactive",
-      "credentials": {
-        "postgres": {
-          "id": "maKB1aah9NmSIhHh",
-          "name": "Postgres account"
-        }
-      }
+      "typeVersion": 1,
+      "id": "361aaf93-dd43-4710-b8a4-d5ca8ff34ea9",
+      "name": "Sticky Note"
     }
   ],
   "pinData": {},
@@ -392,7 +235,12 @@
       "main": [
         [
           {
-            "node": "Execute a SQL query1",
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
             "type": "main",
             "index": 0
           }
@@ -419,7 +267,7 @@
             "index": 0
           },
           {
-            "node": "Insert or update rows in a table",
+            "node": "Execute a SQL query",
             "type": "main",
             "index": 0
           }
@@ -456,8 +304,7 @@
             "type": "main",
             "index": 0
           }
-        ],
-        []
+        ]
       ]
     },
     "Edit Fields1": {
@@ -497,28 +344,16 @@
           }
         ]
       ]
-    },
-    "Make inactive": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "7cd2a6a1-77a7-43a9-905b-b9f82983c44f",
+  "versionId": "970aae32-3e7f-44bc-83fd-f4f74731e54f",
   "meta": {
-    "templateCredsSetupCompleted": true,
     "instanceId": "2476a061ad75c366a8210d7a22d46961583fa3705ff1c8df4e6a45e29055a0dd"
   },
-  "id": "gSn436DI6JEUqtxs",
+  "id": "tETuzIesB302HvNJ",
   "tags": []
 }
